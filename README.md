@@ -1,16 +1,16 @@
 # STEM Lab 3D
 
-Twelve hands-on high-school STEM labs as interactive 3D models. On a DisplayXR (Leia) display the
+Sixteen hands-on high-school STEM labs as interactive 3D models. On a DisplayXR (Leia) display the
 models stand out of the screen in glasses-free 3D; in any other browser they render in 2D.
 
 **Live:** https://joehillthunder.github.io/displayxr-stem-lab/
 
 | Subject | Lessons |
 |---|---|
-| **Science** | Atoms & Electron Shells · DNA & Replication · Projectile Motion |
-| **Technology** | Logic Gates & Adders · Packets & Routing · Pixels, Colour & Bits |
-| **Engineering** | Truss Bridges & Forces · The Four-Stroke Engine · Gears & Mechanical Advantage |
-| **Math** | Functions of Two Variables · The Unit Circle & Waves · Solids of Revolution |
+| **Science** | Atoms & Electron Shells · DNA & Replication · Projectile Motion · The Heart & Blood Flow |
+| **Technology** | Logic Gates & Adders · Packets & Routing · Pixels, Colour & Bits · Data Centers & AI |
+| **Engineering** | Truss Bridges & Forces · The Four-Stroke Engine · Gears & Mechanical Advantage · The Car Differential |
+| **Math** | Functions of Two Variables · The Unit Circle & Waves · Solids of Revolution · Matrices as Transformations |
 
 Every lesson has three tabs:
 

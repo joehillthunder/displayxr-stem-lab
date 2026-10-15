@@ -31,15 +31,19 @@ through the import map in `index.html`; pin exact versions if you bump them.
 | `atom` | Atoms & Electron Shells | Z 1–18, Bohr shells 2-8-8, ions/isotopes; "stable" only for isotopes on its own list. Orbitals mode samples exact hydrogen wavefunctions. |
 | `dna` | DNA & Replication | To-scale B-DNA (0.338 nm rise, 10.5 bp/turn, right-handed). Replication is simplified (no Okazaki fragments), and the Learn text says so. |
 | `projectile` | Projectile Motion | No drag. Hides the plinth and builds its own range per world (Earth 120 m, Mars 280 m, Moon 600 m), with equal scale on both axes. |
+| `heart` | The Heart & Blood Flow | Stylised frontal four-chamber cutaway (patient's right on the viewer's left). A five-phase cycle model drives chamber volumes, valves, the ECG, lub/dub and ~380 cells that queue at closed valves. CO = HR × SV; end-systolic volume fixed at 50 mL. Blue/red is a colour code (the Learn text says real deoxygenated blood is dark red). |
 | `logic` | Logic Gates & Adders | One gate, half adder, full adder, 4-bit ripple-carry adder with visible carry delay. |
 | `network` | Packets & Routing | 11 routers, 19 links; step-by-step Dijkstra; cut a link to reroute; packets reorder by seq. |
 | `pixels` | Pixels, Colour & Bits | RGB cube, subpixels, bit depth 1–8. From 5 bits up the lattice draws only 16 levels (the panel says so). |
+| `datacenter` | Data Centers & AI | Cutaway GPU hall (hot/cold aisles, CRAH, CDU liquid loop, cooling tower, utility → UPS → PDU power path, generator) plus an 8-GPU server view. Estimator: compute ≈ 6·N·D, time = 6ND / (GPUs × peak × MFU), energy × PUE, ~10,500 kWh per US home-year; inference ≈ 2·N FLOPs/token. All presented as estimates with editable assumptions. |
 | `bridge` | Truss Bridges & Forces | Pratt/Howe/Warren, solved by a full joint-equilibrium linear solve; sag from member stretch (E = 200 GPa). `?selftest` compares hand cases. |
 | `engine` | The Four-Stroke Engine | Slider-crank kinematics, cams at half crank speed, spark 8° BTDC; inline-4 option fires 1-3-4-2. |
 | `gears` | Gears & Mechanical Advantage | Involute teeth, centre distance m(z1+z2)/2, compound train, rack & pinion. |
+| `differential` | The Car Differential | Straight bevel gears (ring 41 / pinion 11 = 3.73, spiders 10, sides 16) mesh phase-correctly. Open: (L+R)/2 = carrier; ice: slipping wheel at 2× carrier, car stops; locked: both at carrier. Gears are drawn oversized next to the wheels (said in Learn). `?selftest` checks speeds and meshing. |
 | `surfaces` | Functions of Two Variables | Six functions, marching-squares contours, exact partials, second-derivative test. |
 | `trig` | The Unit Circle & Waves | Helix whose wall/floor shadows are sin/cos; exact values at the 16 special angles. |
 | `revolution` | Solids of Revolution | Disc/washer Riemann sums vs exact volumes (hand-worked). For sin x the midpoint sum is exact for every n ≥ 2 (a symmetry of sin²x); a note explains it so it isn't mistaken for a bug. |
+| `matrices` | Matrices as Transformations | 3×3 editor with column colours = images of i, j, k; presets incl. projection (det 0); det sign/volume; eigen-lines/planes from the characteristic cubic; compose B·A vs A·B. Turns on `renderer.localClippingEnabled` for its clipping box and restores it in `dispose()`. `?selftest` (19 checks). |
 
 ### Adding a lesson
 
@@ -138,8 +142,11 @@ standard only when you're sure of the code. Some current ones are loose fits, fl
   few frames, so you can't click or wait). Read the top of `build()` in each file for its list, e.g.
   bridge `truss/pos/load/forces/pick/selftest`, logic `logicmode/gate/in/a/b`, network `src/dst/step/cut`,
   pixels `rgb/bits/cube`, trig `theta/tan/wave/look`, revolution `curve/n/sweep/discs/washer`,
-  atom `el/n/e/orb`, dna `seq/demo/fork`, projectile `w/a/v/h/demo`.
+  atom `el/n/e/orb`, dna `seq/demo/fork`, projectile `w/a/v/h/demo`, heart
+  `hr/sv/phase/tau/wall/flow/follow/cam/pick`, datacenter `view/mode/cool/n/d/gpus/pue/outage/pick`,
+  differential `sc/r/rpm/lock/housing/look/pick/selftest`, matrices `m/preset/theta/t/eig/vec/compose/selftest`.
 - `window.stem` exposes `{ stage, studio, view, open(id), current, setTab, LESSONS }`.
+- three's `MarchingCubes` addon defaults to `isolation = 80`; set it to 0 for a signed-distance field or the mesh is silently empty (the heart hit this).
 - Headless gotchas: transmission materials (the revolution solid) render milky under SwiftShader; judge
   them on a real GPU. Headless can't go narrower than about 500 px, so check phone layout on a device.
 - Woven 3D can only be checked in the DisplayXR Browser on the Leia panel
