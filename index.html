@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>STEM Lab 3D</title>
+<meta name="description" content="High-school science, technology, engineering and math as interactive 3D models: atoms, DNA, projectiles, logic gates, networks, colour, bridges, engines, gears, surfaces, trigonometry and calculus. Glasses-free 3D on DisplayXR displays, 2D in any browser.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='29' height='29' rx='7' fill='%234fd1a5'/%3E%3Crect x='33' y='2' width='29' height='29' rx='7' fill='%235aa9ff'/%3E%3Crect x='2' y='33' width='29' height='29' rx='7' fill='%23ffb347'/%3E%3Crect x='33' y='33' width='29' height='29' rx='7' fill='%23c38bff'/%3E%3C/svg%3E">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #04060c;
+    --ink: #e8eeff;
+    --muted: #8e9bb8;
+    --panel: rgba(9, 13, 26, 0.82);
+    --line: rgba(160, 190, 255, 0.18);
+    --subject: #8fd0ff;
+    --ok: #6fe0a4;
+    --bad: #ff7a7a;
+    --gold: #ffd76a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif; }
+  #stage { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; display: block; outline: none; touch-action: none; cursor: grab; }
+  #stage.hot { cursor: pointer; }
+  #stage.dragging { cursor: grabbing; }
+  button, select, input { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  [hidden] { display: none !important; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .muted { color: var(--muted); }
+  .btn { border: 1px solid var(--line); background: rgba(160, 190, 255, 0.08); border-radius: 9px; padding: 6px 13px; }
+  .btn:hover { background: rgba(160, 190, 255, 0.18); }
+  .btn.primary { background: var(--subject); border-color: var(--subject); color: #07101c; font-weight: 700; }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.on { background: rgba(160, 190, 255, 0.26); border-color: var(--subject); }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+
+  /* top bar */
+  #top { position: fixed; top: 12px; left: 12px; z-index: 5; display: flex; align-items: center; gap: 10px; padding: 7px 10px 7px 14px; max-width: calc(100vw - 24px); }
+  #top h1 { margin: 0; font-size: 15px; font-weight: 800; letter-spacing: 0.2em; white-space: nowrap; }
+  #top h1 span:nth-child(1) { color: #4fd1a5; } #top h1 span:nth-child(2) { color: #5aa9ff; }
+  #top h1 span:nth-child(3) { color: #ffb347; } #top h1 span:nth-child(4) { color: #c38bff; }
+  #top h1 em { font-style: normal; color: var(--ink); opacity: 0.85; margin-left: 6px; }
+  #badge { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: rgba(255,255,255,0.08); color: var(--muted); letter-spacing: 0.08em; white-space: nowrap; }
+  #badge[data-kind=ok] { background: rgba(111, 224, 164, 0.16); color: var(--ok); }
+  #top .btn { padding: 4px 11px; font-size: 13.5px; }
+
+  /* home hero */
+  #hero { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 4; width: min(1180px, calc(100vw - 24px)); padding: 16px 18px 14px; }
+  #hero .lede { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 12px; }
+  #hero h2 { margin: 0; font-size: 22px; letter-spacing: 0.02em; }
+  #hero .lede p { margin: 0; color: var(--muted); flex: 1; min-width: 240px; }
+  #hero-hide { margin-left: auto; }
+  #hero-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .hcard { border: 1px solid var(--line); border-top: 3px solid var(--c); border-radius: 12px; padding: 10px 12px; background: rgba(255,255,255,0.02); display: flex; flex-direction: column; }
+  .hcard h3 { margin: 0 0 2px; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+  .hcard h3 b { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 6px; background: var(--c); color: #07101c; font-size: 14px; }
+  .hcard p { margin: 0 0 8px; color: var(--muted); font-size: 12.5px; min-height: 2.6em; }
+  .hcard button { text-align: left; background: transparent; border: 0; border-radius: 7px; padding: 5px 8px; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+  .hcard button:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+  .hfoot { margin-top: auto; padding-top: 6px; font-size: 11.5px; color: var(--muted); }
+  body.hero-min #hero-grid, body.hero-min #hero .lede p { display: none; }
+  body.hero-min #hero { width: auto; }
+  body.hero-min #hero .lede { margin: 0; }
+  body:not([data-mode=home]) #hero { display: none; }
+  body[data-mode=home] #panel, body[data-mode=home] #reset-view { display: none; }
+
+  /* lesson panel */
+  #panel { position: fixed; top: 12px; right: 12px; bottom: 12px; width: 370px; z-index: 4; display: flex; flex-direction: column; border-top: 3px solid var(--subject); }
+  #panel header { padding: 14px 16px 0; }
+  #p-kind { margin: 0; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--subject); font-weight: 700; }
+  #p-title { margin: 2px 0 4px; font-size: 22px; line-height: 1.2; }
+  #p-summary { margin: 0 0 10px; color: #bfc9e2; font-size: 13.5px; }
+  #tabs { display: flex; gap: 4px; padding: 0 12px; border-bottom: 1px solid var(--line); }
+  #tabs button { flex: 1; background: none; border: 0; padding: 8px 4px; color: var(--muted); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  #tabs button.on { color: var(--ink); border-color: var(--subject); }
+  #tabs kbd { font: 600 10px ui-monospace, Consolas, monospace; opacity: 0.55; margin-left: 4px; }
+  .pane { flex: 1; overflow: auto; padding: 12px 16px 16px; }
+  #learnpane p, #learnpane li { color: #c8d1e8; font-size: 14px; }
+  #learnpane h4, .ctl-head { margin: 14px 0 6px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+  #learnpane ul, #learnpane ol { padding-left: 20px; margin: 0 0 10px; }
+  .formula { margin: 12px 0; padding: 10px 12px; border-radius: 10px; background: rgba(255,255,255,0.04); border-left: 3px solid var(--subject); font: 15px/1.6 "Cambria Math", "Times New Roman", serif; }
+  .vocab { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; margin: 0; }
+  .vocab dt { color: var(--subject); font-weight: 600; }
+  .vocab dd { margin: 0; color: #c8d1e8; }
+  .standards { font-size: 11.5px; color: var(--muted); margin-top: 14px; }
+
+  /* lesson controls */
+  .ctl { display: block; margin: 0 0 12px; font-size: 13.5px; }
+  .ctl-top { display: flex; justify-content: space-between; gap: 8px; }
+  .ctl-name { color: #c8d1e8; }
+  .ctl-val { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+  .slider input { width: 100%; accent-color: var(--subject); margin: 4px 0 0; }
+  .toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .toggle input { position: absolute; opacity: 0; pointer-events: none; }
+  .toggle .sw { width: 34px; height: 20px; border-radius: 99px; background: rgba(255,255,255,0.14); position: relative; flex: none; transition: background 0.2s; }
+  .toggle .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+  .toggle input:checked + .sw { background: var(--subject); }
+  .toggle input:checked + .sw::after { transform: translateX(14px); }
+  .toggle input:focus-visible + .sw { outline: 2px solid var(--subject); outline-offset: 2px; }
+  .choice .ctl-name { margin-bottom: 4px; }
+  .seg { display: flex; flex-wrap: wrap; gap: 4px; }
+  .seg button { flex: 1 1 auto; border: 1px solid var(--line); background: rgba(255,255,255,0.03); border-radius: 8px; padding: 5px 8px; font-size: 13px; }
+  .seg button.on { background: color-mix(in srgb, var(--subject) 28%, transparent); border-color: var(--subject); }
+  .select { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .select select { background: #0d1426; border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; max-width: 60%; }
+  .readout { display: flex; justify-content: space-between; gap: 10px; padding: 6px 10px; border-radius: 8px; background: rgba(255,255,255,0.035); margin-bottom: 6px; }
+  .ctl-note { color: #b6c1dc; font-size: 13px; margin: 6px 0 12px; }
+  .ctl-note b, .readout b { color: var(--subject); }
+
+  /* quiz */
+  .qhead { display: flex; justify-content: space-between; color: var(--muted); font-size: 12.5px; }
+  .meter { height: 5px; border-radius: 99px; background: rgba(255,255,255,0.08); overflow: hidden; margin: 6px 0 12px; }
+  .meter i { display: block; height: 100%; background: var(--subject); transition: width 0.3s; }
+  .qtext { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
+  .qopts { display: flex; flex-direction: column; gap: 6px; }
+  .qopt { text-align: left; border: 1px solid var(--line); background: rgba(255,255,255,0.03); border-radius: 10px; padding: 9px 12px; font-size: 14px; }
+  .qopt:not(:disabled):hover { border-color: var(--subject); }
+  .qopt.right { border-color: var(--ok); background: rgba(111, 224, 164, 0.14); }
+  .qopt.wrong { border-color: var(--bad); background: rgba(255, 122, 122, 0.12); }
+  .qopt:disabled { cursor: default; }
+  .why { font-size: 13.5px; color: #c8d1e8; margin: 12px 0 8px; }
+  .why.good b { color: var(--ok); } .why.bad b { color: var(--bad); }
+  .qdone { text-align: center; padding-top: 10px; }
+  .qdone .big { font-size: 42px; font-weight: 800; color: var(--subject); }
+  .qdone .btnrow { justify-content: center; }
+
+  /* bottom-left bar */
+  #bar { position: fixed; left: 12px; bottom: 12px; z-index: 4; display: flex; gap: 10px; align-items: center; padding: 7px 10px; font-size: 13px; }
+  body[data-mode=home] #bar { bottom: auto; top: 64px; }
+  #bar label { display: flex; gap: 6px; align-items: center; color: var(--muted); }
+  #bar input[type=range] { width: 90px; accent-color: var(--subject); }
+  #bar .btn { padding: 4px 10px; }
+
+  /* menu drawer */
+  #menu { position: fixed; top: 0; left: 0; bottom: 0; width: min(360px, 100vw); z-index: 7; transform: translateX(-105%); transition: transform 0.25s ease; border-radius: 0 14px 14px 0; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+  #menu.open { transform: none; }
+  #menu .mhead { display: flex; justify-content: space-between; align-items: center; }
+  #menu .mhead b { letter-spacing: 0.18em; font-size: 13px; }
+  #menu-close { background: none; border: 0; font-size: 22px; color: var(--muted); }
+  #menu-subjects { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .subj { border: 1px solid var(--line); background: rgba(255,255,255,0.03); border-radius: 10px; padding: 6px 2px; display: flex; flex-direction: column; align-items: center; font-size: 11.5px; }
+  .subj b { font-size: 18px; color: var(--c); }
+  .subj.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+  #menu-lessons { overflow: auto; display: flex; flex-direction: column; gap: 4px; }
+  #menu-lessons .blurb { color: var(--muted); font-size: 13px; margin: 2px 0 6px; }
+  .lesson { text-align: left; background: transparent; border: 1px solid transparent; border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; }
+  .lesson:hover { background: rgba(255,255,255,0.05); }
+  .lesson.on { border-color: var(--subject); background: color-mix(in srgb, var(--subject) 12%, transparent); }
+  .lesson .t { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+  .lesson .d { color: var(--muted); font-size: 12px; }
+  .star { color: var(--gold); } .score { color: var(--muted); font-size: 12px; font-weight: 600; } .seen { color: var(--muted); }
+
+  /* card, toast, loading */
+  #card { position: fixed; left: calc(50% - 190px); bottom: 70px; transform: translateX(-50%); z-index: 5; width: min(520px, calc(100vw - 24px)); padding: 12px 16px; }
+  #card-kind { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; color: var(--subject); }
+  #card-title { margin: 2px 0 6px; font-size: 18px; padding-right: 26px; }
+  #card-body { color: #c8d1e8; font-size: 14px; }
+  #card-body p { margin: 0 0 6px; }
+  #card-x { position: absolute; top: 8px; right: 8px; border: 0; background: transparent; font-size: 20px; color: var(--muted); padding: 2px 8px; }
+  #toast { position: fixed; left: 50%; top: 14px; transform: translateX(-50%); z-index: 9; padding: 8px 16px; pointer-events: none; transition: opacity 0.35s; opacity: 0; max-width: 90vw; }
+  #toast.good { border-color: rgba(111, 224, 164, 0.6); }
+  #loading { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 3; color: var(--muted); letter-spacing: 0.2em; font-size: 12px; }
+
+  /* phones and narrow windows: the panel becomes a bottom sheet */
+  @media (max-width: 1000px) { #hero-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 760px) {
+    #top h1 em { display: none; }
+    #panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; height: 46vh; }
+    #panel header { padding: 10px 12px 0; }
+    #p-summary { display: none; }
+    #bar { top: 60px; bottom: auto; }
+    #card { left: 50%; bottom: calc(46vh + 16px); }
+    #hero { bottom: 8px; max-height: 62vh; overflow: auto; padding: 12px; }
+    #hero-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body data-mode="home">
+<canvas id="stage" tabindex="0" aria-label="3D lesson model: drag to rotate, scroll to zoom, right-drag to pan"></canvas>
+
+<div id="top" class="panel">
+  <h1><span>S</span><span>T</span><span>E</span><span>M</span><em>LAB 3D</em></h1>
+  <button class="btn" id="home-btn" title="Home">Home</button>
+  <button class="btn" id="menu-btn" title="All lessons (M)">Lessons</button>
+  <span id="badge">2D PREVIEW</span>
+</div>
+
+<div id="bar" class="panel">
+  <button class="btn" id="reset-view" title="Reset the camera (double-click)">Reset view</button>
+  <label title="Stereo depth">Depth <input id="depth" type="range" min="0" max="2" step="0.05" value="1"></label>
+  <button class="btn on" id="mode3d" hidden title="Switch the lens between 3D and 2D">3D</button>
+</div>
+
+<section id="hero" class="panel">
+  <div class="lede">
+    <h2>High-school STEM, in real depth</h2>
+    <p>Twelve hands-on 3D labs. Pick a lesson, turn the model with your mouse or finger, change the settings in the Lab tab, then prove it in the quiz.</p>
+    <button class="btn" id="hero-hide" title="Show or hide the lesson list">Hide</button>
+  </div>
+  <div id="hero-grid"></div>
+</section>
+
+<aside id="panel" class="panel">
+  <header>
+    <p id="p-kind"></p>
+    <h2 id="p-title"></h2>
+    <p id="p-summary"></p>
+  </header>
+  <nav id="tabs">
+    <button data-tab="learn">Learn<kbd>1</kbd></button>
+    <button data-tab="lab" class="on">Lab<kbd>2</kbd></button>
+    <button data-tab="quiz">Quiz<kbd>3</kbd></button>
+  </nav>
+  <div id="learnpane" class="pane" hidden><div id="learn"></div></div>
+  <div id="labpane" class="pane"><div id="controls"></div><p class="muted" style="font-size:12px;margin-top:14px">Drag to rotate · scroll or pinch to zoom · right-drag to pan · click glowing parts for details</p></div>
+  <div id="quizpane" class="pane" hidden></div>
+</aside>
+
+<nav id="menu" class="panel" aria-label="Lessons">
+  <div class="mhead"><b>LESSONS</b><button id="menu-close" aria-label="Close">×</button></div>
+  <div id="menu-subjects"></div>
+  <div id="menu-lessons"></div>
+</nav>
+
+<div id="card" class="panel" hidden>
+  <div id="card-kind"></div>
+  <h3 id="card-title"></h3>
+  <div id="card-body"></div>
+  <button id="card-x" aria-label="Close">×</button>
+</div>
+<div id="toast" class="panel"></div>
+<div id="loading" hidden>LOADING…</div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/",
+  "@displayxr/inline3d": "https://cdn.jsdelivr.net/npm/@displayxr/inline3d@1.45.1/js/inline3d.js",
+  "@displayxr/inline3d/three": "https://cdn.jsdelivr.net/npm/@displayxr/inline3d@1.45.1/js/inline3d-three.js"
+} }
+</script>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
